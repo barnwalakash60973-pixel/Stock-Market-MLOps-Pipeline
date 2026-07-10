@@ -6,12 +6,12 @@ import yfinance as yf
 from src.utils.config import load_config
 from src.utils.logger import get_logger
 
-
 logger = get_logger("data_ingestion")
 
 
 class DataIngestionError(Exception):
     """Custom exception for data ingestion failures."""
+
     pass
 
 
@@ -48,7 +48,7 @@ class DataIngestion:
                 start=self.start_date,
                 end=self.end_date,
                 progress=False,
-                auto_adjust=False
+                auto_adjust=False,
             )
 
             if df.empty:
@@ -109,16 +109,14 @@ class DataIngestion:
             raise DataIngestionError("Failed to persist downloaded data") from e
 
         return self.output_path
-    
 
-    
     def run(self, force=False):
         output_file = Path(self.output_path)
 
         if output_file.exists() and not force:
             logger.info(
-               f"Raw data already exists at {self.output_path}. "
-               "Skipping data ingestion."
+                f"Raw data already exists at {self.output_path}. "
+                "Skipping data ingestion."
             )
             return self.output_path
 
@@ -130,6 +128,7 @@ class DataIngestion:
         logger.info(f"Raw data saved to {self.output_path}")
 
         return self.output_path
+
 
 if __name__ == "__main__":
     try:

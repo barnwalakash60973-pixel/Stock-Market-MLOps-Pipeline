@@ -8,8 +8,6 @@ from src.utils.logger import get_logger
 logger = get_logger("training_pipeline")
 
 
-
-
 def main():
     try:
         logger.info("Starting Training Pipeline")
@@ -35,6 +33,7 @@ def main():
     except Exception as e:
         logger.exception(f"Pipeline failed: {e}")
         raise
+
+
 if __name__ == "__main__":
     main()
-    

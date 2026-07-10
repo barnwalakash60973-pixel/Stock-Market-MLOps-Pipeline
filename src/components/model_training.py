@@ -11,35 +11,23 @@ except ImportError as e:
     ) from e
 
 
-
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix,
-    f1_score,
-    precision_score,
-    recall_score,
-)
-
+from sklearn.metrics import (accuracy_score, classification_report,
+                             confusion_matrix, f1_score, precision_score,
+                             recall_score)
 from sklearn.pipeline import Pipeline
 
 from src.utils.config import load_config
+from src.utils.constants import (FEATURE_COLS, TARGET_COL, TARGET_LABELS,
+                                 TARGET_NAMES)
 from src.utils.logger import get_logger
-from src.utils.constants import (
-    FEATURE_COLS,
-    TARGET_COL,
-    TARGET_LABELS,
-    TARGET_NAMES,
-)
 
 logger = get_logger("train")
 
 
-
-
 class TrainingError(Exception):
     """Custom exception for model training failures."""
+
     pass
 
 
@@ -71,22 +59,24 @@ class ModelTrainer:
             self.fold_metrics_path = config["output"].get(
                 "fold_metrics_path", "reports/walk_forward_metrics.txt"
             )
-            
 
             self.final_metrics_path = config["output"].get(
-                "final_metrics_path", "reports/final_model_metrics.txt",
+                "final_metrics_path",
+                "reports/final_model_metrics.txt",
             )
 
             self.random_state = config["train"].get("random_state", 42)
             self.model_params = config["train"].get("model_params", {})
             self.impute_strategy = config["train"].get("impute_strategy", "median")
             self.es_frac = config["train"].get("es_frac", 0.1)
-            self.early_stopping_rounds = config["train"].get("early_stopping_rounds", 50)
+            self.early_stopping_rounds = config["train"].get(
+                "early_stopping_rounds", 50
+            )
 
             self.walk_forward_folds = config["train"]["walk_forward_folds"]
             self.final_train_range = config["train"]["final_train_range"]
             self.evaluation_range = config["train"]["evaluation_range"]
-            
+
         except KeyError as e:
             logger.error(f"Missing required config key: {e}")
             raise TrainingError(f"Invalid config.yaml: missing key {e}") from e
@@ -103,12 +93,15 @@ class ModelTrainer:
         input_file = Path(self.input_path)
 
         if not input_file.exists():
-            logger.error(f"Feature file does not exist at {self.input_path}. Run feature_engineering first.")
-            raise TrainingError(
-                f"No feature data found at {self.input_path}. "
-                f"This script only reads existing data — it does not build features itself."
+            logger.error(
+                "Feature file does not exist at "
+                f"{self.input_path}. Run feature_engineering first."
             )
-
+            raise TrainingError(
+                f"No feature data found at {self.input_path}.\n"
+                "This script only reads existing data "
+                "and does not build features itself."
+            )
         try:
             logger.info(f"Reading feature data from {self.input_path} (read-only)")
 
@@ -172,7 +165,8 @@ class ModelTrainer:
             group = group.sort_values("Date")
 
             if len(group) < 2:
-                logger.warning(f"Ticker {ticker}: only {len(group)} row(s) in this fold, skipping ES split.")
+                logger.warning(f"""Ticker {ticker}: only {len(group)}
+                      row(s) in this fold, skipping ES split.""")
                 continue
 
             cut = max(1, int(len(group) * (1 - self.es_frac)))
@@ -182,10 +176,16 @@ class ModelTrainer:
             es_frames.append(group.iloc[cut:])
 
         if not fit_frames or not es_frames:
-            raise TrainingError("ES split produced no usable rows for this fold (insufficient history).")
+            raise TrainingError(
+                "ES split produced no usable rows for this fold (insufficient history)."
+            )
 
-        fit_df = pd.concat(fit_frames).sort_values(["Ticker", "Date"]).reset_index(drop=True)
-        es_df = pd.concat(es_frames).sort_values(["Ticker", "Date"]).reset_index(drop=True)
+        fit_df = (
+            pd.concat(fit_frames).sort_values(["Ticker", "Date"]).reset_index(drop=True)
+        )
+        es_df = (
+            pd.concat(es_frames).sort_values(["Ticker", "Date"]).reset_index(drop=True)
+        )
 
         return fit_df, es_df
 
@@ -208,8 +208,12 @@ class ModelTrainer:
         fold_results = []
 
         for i, fold in enumerate(self.walk_forward_folds, start=1):
-            train_df = self._slice_by_date(labeled_df, fold["train_start"], fold["train_end"])
-            test_df = self._slice_by_date(labeled_df, fold["test_start"], fold["test_end"])
+            train_df = self._slice_by_date(
+                labeled_df, fold["train_start"], fold["train_end"]
+            )
+            test_df = self._slice_by_date(
+                labeled_df, fold["test_start"], fold["test_end"]
+            )
 
             if train_df.empty or test_df.empty:
                 logger.warning(f"Fold {i}: empty train or test window, skipping.")
@@ -217,7 +221,8 @@ class ModelTrainer:
 
             logger.info(
                 f"Fold {i}: train {fold['train_start']} -> {fold['train_end']} "
-                f"({len(train_df)} rows), test {fold['test_start']} -> {fold['test_end']} "
+                f"""({len(train_df)} rows), test {fold['test_start']} ->
+                  {fold['test_end']} """
                 f"({len(test_df)} rows)"
             )
 
@@ -227,7 +232,6 @@ class ModelTrainer:
             X_es, y_es = es_df[FEATURE_COLS], es_df[TARGET_COL]
             X_test, y_test = test_df[FEATURE_COLS], test_df[TARGET_COL]
 
-            
             imputer = SimpleImputer(strategy=self.impute_strategy)
 
             X_fit = imputer.fit_transform(X_fit)
@@ -236,7 +240,8 @@ class ModelTrainer:
 
             model = self.build_model()
             model.fit(
-                X_fit, y_fit,
+                X_fit,
+                y_fit,
                 eval_set=(X_es, y_es),
                 early_stopping_rounds=self.early_stopping_rounds,
                 verbose=False,
@@ -253,14 +258,19 @@ class ModelTrainer:
                 "test_range": f"{fold['test_start']} -> {fold['test_end']}",
                 "best_iteration": best_iteration,
                 "accuracy": accuracy_score(y_test, y_pred),
-                "precision": precision_score(y_test, y_pred, average="macro", zero_division=0),
-                "recall": recall_score(y_test, y_pred, average="macro", zero_division=0),
+                "precision": precision_score(
+                    y_test, y_pred, average="macro", zero_division=0
+                ),
+                "recall": recall_score(
+                    y_test, y_pred, average="macro", zero_division=0
+                ),
                 "f1_score": f1_score(y_test, y_pred, average="macro", zero_division=0),
             }
 
             logger.info(
                 f"Fold {i} results — accuracy: {metrics['accuracy']:.4f}, "
-                f"precision: {metrics['precision']:.4f}, recall: {metrics['recall']:.4f}, "
+                f"precision: {metrics['precision']:.4f}, "
+                f"recall: {metrics['recall']:.4f}, "
                 f"f1: {metrics['f1_score']:.4f}"
             )
 
@@ -274,8 +284,7 @@ class ModelTrainer:
             report_dir.mkdir(parents=True, exist_ok=True)
 
             if not fold_results:
-               raise TrainingError("No valid walk-forward folds were produced.")
-
+                raise TrainingError("No valid walk-forward folds were produced.")
 
             lines = ["WALK-FORWARD VALIDATION METRICS", "=" * 40]
 
@@ -283,11 +292,12 @@ class ModelTrainer:
                 lines.append(f"\nFold {metrics['fold']}")
                 lines.append(f"  Train: {metrics['train_range']}")
                 lines.append(f"  Test:  {metrics['test_range']}")
-                lines.append(f"  Best iteration (early stopping): {metrics['best_iteration']}")
+                lines.append(
+                    f"  Best iteration (early stopping): {metrics['best_iteration']}"
+                )
                 for key in ["accuracy", "precision", "recall", "f1_score"]:
                     lines.append(f"  {key}: {metrics[key]:.4f}")
-            
-            
+
             # Average metrics
             lines.append("\n" + "=" * 40)
             lines.append("AVERAGE ACROSS ALL FOLDS")
@@ -296,8 +306,6 @@ class ModelTrainer:
                 avg = sum(m[key] for m in fold_results) / len(fold_results)
                 lines.append(f"{key}: {avg:.4f}")
 
-
-                
             Path(self.fold_metrics_path).write_text("\n".join(lines))
             logger.info(f"Walk-forward metrics saved to {self.fold_metrics_path}")
             return self.fold_metrics_path
@@ -312,65 +320,65 @@ class ModelTrainer:
 
     def train_final_model(self, labeled_df: pd.DataFrame) -> Pipeline:
         train_df = self._slice_by_date(
-            labeled_df, self.final_train_range["train_start"], self.final_train_range["train_end"]
+            labeled_df,
+            self.final_train_range["train_start"],
+            self.final_train_range["train_end"],
         )
 
         if train_df.empty:
-            raise TrainingError("Final training window produced no rows. Check final_train_range in config.")
+            raise TrainingError("""Final training window produced no rows.
+                   Check final_train_range in config.""")
 
         logger.info(
             f"Training final production pipeline on "
-            f"{self.final_train_range['train_start']} -> {self.final_train_range['train_end']} "
+            f"{self.final_train_range['train_start']} -> "
+            f"{self.final_train_range['train_end']} "
             f"({len(train_df)} rows)"
         )
-
         X_train, y_train = train_df[FEATURE_COLS], train_df[TARGET_COL]
-
-        # Same class-balancing used during walk-forward validation, kept
-        # consistent so the deployed model matches what was validated.
-        sample_weight = compute_sample_weight("balanced", y=y_train)
-
         imputer = SimpleImputer(strategy=self.impute_strategy)
         X_train_imputed = imputer.fit_transform(X_train)
 
         model = self.build_model()
-        model.fit(X_train_imputed, y_train, sample_weight=sample_weight)
+        model.fit(X_train_imputed, y_train)
 
-        pipeline = Pipeline([
-            ("imputer", imputer),
-            ("model", model),
-        ])
+        pipeline = Pipeline(
+            [
+                ("imputer", imputer),
+                ("model", model),
+            ]
+        )
 
         return pipeline
-    
-    #====================================================
+
+    # ====================================================
     # Evaluation on Evaluation Data
-    # =================================================== 
-    
+    # ===================================================
+
     def evaluate_final_model(
-    self,
-    pipeline: Pipeline,
-    labeled_df: pd.DataFrame,
+        self,
+        pipeline: Pipeline,
+        labeled_df: pd.DataFrame,
     ) -> dict:
         """
-         After walk-forward validation, a final production model is trained.
-         The model is evaluated on a separate evaluation period using
-         ground-truth labels and then used for forward-only inference on a
-         future inference period.
+        After walk-forward validation, a final production model is trained.
+        The model is evaluated on a separate evaluation period using
+        ground-truth labels and then used for forward-only inference on a
+        future inference period.
 
         """
 
         test_df = self._slice_by_date(
-        labeled_df,
-        self.evaluation_range["start"],
-        self.evaluation_range["end"],
+            labeled_df,
+            self.evaluation_range["start"],
+            self.evaluation_range["end"],
         )
 
         if test_df.empty:
             raise TrainingError(
-            "Evaluation window produced no rows. "
-            "Check evaluation_range in config."
-           )
+                "Evaluation window produced no rows. "
+                "Check evaluation_range in config."
+            )
 
         X_test = test_df[FEATURE_COLS]
         y_test = test_df[TARGET_COL]
@@ -378,31 +386,31 @@ class ModelTrainer:
         predictions = pipeline.predict(X_test)
 
         metrics = {
-                "accuracy": accuracy_score(y_test, predictions),
-                "precision": precision_score(
+            "accuracy": accuracy_score(y_test, predictions),
+            "precision": precision_score(
                 y_test,
                 predictions,
                 average="macro",
                 zero_division=0,
             ),
-                "recall": recall_score(
+            "recall": recall_score(
                 y_test,
                 predictions,
                 average="macro",
                 zero_division=0,
             ),
-                "f1_score": f1_score(
+            "f1_score": f1_score(
                 y_test,
                 predictions,
                 average="macro",
                 zero_division=0,
             ),
-                "confusion_matrix": confusion_matrix(
+            "confusion_matrix": confusion_matrix(
                 y_test,
                 predictions,
                 labels=TARGET_LABELS,
             ).tolist(),
-                "classification_report": classification_report(
+            "classification_report": classification_report(
                 y_test,
                 predictions,
                 labels=TARGET_LABELS,
@@ -412,14 +420,14 @@ class ModelTrainer:
         }
 
         logger.info(
-          f"Evaluating final model on "
-          f"{self.evaluation_range['start']} -> "
-          f"{self.evaluation_range['end']} "
-          f"({len(test_df)} rows)"
+            f"Evaluating final model on "
+            f"{self.evaluation_range['start']} -> "
+            f"{self.evaluation_range['end']} "
+            f"({len(test_df)} rows)"
         )
 
         return metrics
-    
+
     def save_final_metrics(self, metrics: dict) -> str:
         """
         Saves the final model evaluation metrics to a text report.
@@ -456,8 +464,6 @@ class ModelTrainer:
             logger.error(f"Failed to save final model metrics: {e}")
             raise TrainingError("Failed to persist final model metrics") from e
 
-
-    
     # ------------------------------------------------------------------
     # Persistence
     # ------------------------------------------------------------------
@@ -466,7 +472,10 @@ class ModelTrainer:
         try:
             Path(self.model_path).parent.mkdir(parents=True, exist_ok=True)
             joblib.dump(pipeline, self.model_path)
-            logger.info(f"Final pipeline (imputer + model) saved successfully to {self.model_path}")
+            logger.info(
+                "Final pipeline (imputer + model)"
+                f"saved successfully to {self.model_path}"
+            )
             return self.model_path
 
         except Exception as e:
@@ -493,14 +502,13 @@ class ModelTrainer:
         final_pipeline = self.train_final_model(labeled_df)
 
         final_metrics = self.evaluate_final_model(
-                        final_pipeline,
-                        labeled_df,
-                        )
-        
+            final_pipeline,
+            labeled_df,
+        )
+
         self.save_final_metrics(final_metrics)
 
         model_path = self.save_pipeline(final_pipeline)
-
 
         return model_path
 

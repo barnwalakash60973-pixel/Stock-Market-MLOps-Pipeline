@@ -1,18 +1,18 @@
-
 import json
 from pathlib import Path
 
 import pandas as pd
 
 from src.utils.config import load_config
+from src.utils.constants import EXPECTED_DTYPES, REQUIRED_COLUMNS
 from src.utils.logger import get_logger
-from src.utils.constants import REQUIRED_COLUMNS, EXPECTED_DTYPES
 
 logger = get_logger("data_validation")
 
 
 class DataValidationError(Exception):
     """Custom exception for data validation failures."""
+
     pass
 
 
@@ -24,9 +24,8 @@ class DataValidation:
 
             self.input_path = config["output"]["raw_data_path"]
             self.report_path = config["output"].get(
-                                "validation_report_path",
-                                "artifacts/validation_report.json"
-                            )
+                "validation_report_path", "artifacts/validation_report.json"
+            )
 
         except KeyError as e:
             logger.error(f"Missing required config key: {e}")
@@ -45,7 +44,9 @@ class DataValidation:
 
     def load_data(self) -> pd.DataFrame:
         if not Path(self.input_path).exists():
-            logger.error(f"Data file does not exist at {self.input_path}. Run ingestion first.")
+            logger.error(
+                f"Data file does not exist at {self.input_path}. Run ingestion first."
+            )
             raise DataValidationError(
                 f"No data found at {self.input_path}. "
                 f"This script only reads existing data — it does not download anything."
@@ -109,7 +110,9 @@ class DataValidation:
         return result
 
     def check_duplicates(self) -> dict:
-        subset = ["Date", "Ticker"] if {"Date", "Ticker"}.issubset(self.df.columns) else None
+        subset = (
+            ["Date", "Ticker"] if {"Date", "Ticker"}.issubset(self.df.columns) else None
+        )
         duplicate_count = int(self.df.duplicated(subset=subset).sum())
 
         result = {
@@ -164,13 +167,12 @@ class DataValidation:
 
         if {"High", "Low", "Open", "Close"}.issubset(self.df.columns):
             bad_high = self.df[
-                (self.df["High"] < self.df["Low"]) |
-                (self.df["High"] < self.df["Open"]) |
-                (self.df["High"] < self.df["Close"])
+                (self.df["High"] < self.df["Low"])
+                | (self.df["High"] < self.df["Open"])
+                | (self.df["High"] < self.df["Close"])
             ]
             bad_low = self.df[
-                (self.df["Low"] > self.df["Open"]) |
-                (self.df["Low"] > self.df["Close"])
+                (self.df["Low"] > self.df["Open"]) | (self.df["Low"] > self.df["Close"])
             ]
 
             if not bad_high.empty:
@@ -206,7 +208,10 @@ class DataValidation:
         if negative_volume > 0:
             logger.error(f"Found {negative_volume} rows with negative volume.")
         if zero_volume > 0:
-            logger.warning(f"Found {zero_volume} rows with zero volume (may be valid for holidays).")
+            logger.warning(
+                f"Found {zero_volume} rows with "
+                "zero volume (may be valid for holidays)."
+            )
 
         return result
 
@@ -239,10 +244,7 @@ class DataValidation:
 
     def generate_validation_report(self) -> str:
         try:
-            Path(self.report_path).parent.mkdir(
-                parents=True,
-                exist_ok=True
-            )
+            Path(self.report_path).parent.mkdir(parents=True, exist_ok=True)
 
             with open(self.report_path, "w") as f:
                 json.dump(self.report, f, indent=4)
@@ -273,11 +275,8 @@ class DataValidation:
 
         self.generate_validation_report()
 
-        critical_checks = ["schema",
-                           "missing_values", 
-                           "price_columns", 
-                           "volume"]
-        
+        critical_checks = ["schema", "missing_values", "price_columns", "volume"]
+
         failed_critical = [c for c in critical_checks if not self.report[c]["passed"]]
 
         if failed_critical:
@@ -286,7 +285,7 @@ class DataValidation:
 
         logger.info("Data validation completed successfully.")
         return self.report
-    
+
     def run(self) -> dict:
         """
         Runs the complete data validation pipeline.
@@ -300,9 +299,7 @@ if __name__ == "__main__":
         report = validator.run()
 
         for check, result in report.items():
-            logger.info(
-                f"{check}: {'PASSED' if result['passed'] else 'FAILED'}"
-            )
+            logger.info(f"{check}: {'PASSED' if result['passed'] else 'FAILED'}")
 
     except DataValidationError as e:
         logger.critical(f"Data validation failed: {e}")

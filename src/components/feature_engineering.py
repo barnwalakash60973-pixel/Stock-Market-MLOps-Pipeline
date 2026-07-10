@@ -6,7 +6,6 @@ import pandas as pd
 from src.utils.config import load_config
 from src.utils.logger import get_logger
 
-
 logger = get_logger("feature_engineering")
 
 EPS = 1e-8
@@ -16,6 +15,7 @@ LOW_THRE = -0.01
 
 class FeatureEngineeringError(Exception):
     """Custom exception for feature engineering failures."""
+
     pass
 
 
@@ -36,11 +36,15 @@ class FeatureEngineering:
 
         except KeyError as e:
             logger.error(f"Missing required config key: {e}")
-            raise FeatureEngineeringError(f"Invalid config.yaml: missing key {e}") from e
+            raise FeatureEngineeringError(
+                f"Invalid config.yaml: missing key {e}"
+            ) from e
 
         except Exception as e:
             logger.error(f"Failed to load config: {e}")
-            raise FeatureEngineeringError("Could not initialize FeatureEngineering") from e
+            raise FeatureEngineeringError(
+                "Could not initialize FeatureEngineering"
+            ) from e
 
     # ------------------------------------------------------------------
     # Loading (read-only, no downloading, no fallback)
@@ -50,10 +54,13 @@ class FeatureEngineering:
         input_file = Path(self.input_path)
 
         if not input_file.exists():
-            logger.error(f"Data file does not exist at {self.input_path}. Run ingestion first.")
+            logger.error(
+                f"Data file does not exist at {self.input_path}. Run ingestion first."
+            )
             raise FeatureEngineeringError(
                 f"No data found at {self.input_path}. "
-                f"This script only reads existing data — it does not download or regenerate it."
+                f"""This script only reads existing data —
+                  it does not download or regenerate it."""
             )
 
         try:
@@ -75,8 +82,7 @@ class FeatureEngineering:
         except Exception as e:
             logger.error(f"Failed to read data: {e}")
             raise FeatureEngineeringError("Failed to read existing data file") from e
-        
-    
+
     # ------------------------------------------------------------------
     # Static indicator helpers (pure functions, no leakage)
     # ------------------------------------------------------------------
@@ -123,7 +129,7 @@ class FeatureEngineering:
         g_price = df.groupby("Ticker")["Adj Close"]
 
         df["Return_1D"] = g_price.pct_change(1)
-        
+
         r1 = df.groupby("Ticker")["Return_1D"]
         df["Return_1D_Lag1"] = r1.shift(1)
         df["Return_1D_Lag2"] = r1.shift(2)
@@ -143,14 +149,16 @@ class FeatureEngineering:
         sma20 = g_price.transform(lambda x: x.rolling(20, min_periods=20).mean())
         sma50 = g_price.transform(lambda x: x.rolling(50, min_periods=50).mean())
 
-        ema10 = g_price.transform(lambda x: x.ewm(span=10, min_periods=10, adjust=False).mean())
-        
+        ema10 = g_price.transform(
+            lambda x: x.ewm(span=10, min_periods=10, adjust=False).mean()
+        )
+
         df["Close_SMA10_Ratio"] = price / sma10
         df["Close_SMA20_Ratio"] = price / sma20
         df["Close_SMA50_Ratio"] = price / sma50
 
         df["Close_EMA10_Ratio"] = price / ema10
-        
+
         return df
 
     def _create_oscillator_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -163,7 +171,7 @@ class FeatureEngineering:
 
         df["RSI_14"] = g_price.transform(lambda x: self._rsi(x, 14))
 
-        macd_parts = {"MACD": [],  "MACD_Hist": []}
+        macd_parts = {"MACD": [], "MACD_Hist": []}
 
         for _, sub in g_price:
             macd, hist = self._macd(sub)
@@ -174,8 +182,12 @@ class FeatureEngineering:
             df[col] = pd.concat(parts).reindex(df.index) / price
 
         # Stochastic uses actual OHLC, not adjusted close
-        low14 = df.groupby("Ticker")["Low"].transform(lambda x: x.rolling(14, min_periods=14).min())
-        high14 = df.groupby("Ticker")["High"].transform(lambda x: x.rolling(14, min_periods=14).max())
+        low14 = df.groupby("Ticker")["Low"].transform(
+            lambda x: x.rolling(14, min_periods=14).min()
+        )
+        high14 = df.groupby("Ticker")["High"].transform(
+            lambda x: x.rolling(14, min_periods=14).max()
+        )
 
         df["Stoch_K_14"] = 100 * (df["Close"] - low14) / (high14 - low14 + EPS)
 
@@ -194,21 +206,25 @@ class FeatureEngineering:
 
         high, low = df["High"], df["Low"]
 
-        df["Volatility_20"] = (
-            df.groupby("Ticker")["Return_1D"]
-            .transform(lambda x: x.rolling(20, min_periods=20).std())
+        df["Volatility_20"] = df.groupby("Ticker")["Return_1D"].transform(
+            lambda x: x.rolling(20, min_periods=20).std()
         )
 
-        tr = pd.concat([
-            high - low,
-            (high - prev_price).abs(),
-            (low - prev_price).abs(),
-        ], axis=1).max(axis=1)
+        tr = pd.concat(
+            [
+                high - low,
+                (high - prev_price).abs(),
+                (low - prev_price).abs(),
+            ],
+            axis=1,
+        ).max(axis=1)
 
         df["True_Range_Pct"] = tr / price
 
         df["_tr_tmp"] = tr
-        atr14 = df.groupby("Ticker")["_tr_tmp"].transform(lambda x: x.rolling(14, min_periods=14).mean())
+        atr14 = df.groupby("Ticker")["_tr_tmp"].transform(
+            lambda x: x.rolling(14, min_periods=14).mean()
+        )
         df["ATR_14"] = atr14 / price
         df.drop(columns="_tr_tmp", inplace=True)
 
@@ -231,7 +247,9 @@ class FeatureEngineering:
         vol = df["Volume"]
         g = df.groupby("Ticker")
 
-        vol_sma20 = g["Volume"].transform(lambda x: x.rolling(20, min_periods=20).mean())
+        vol_sma20 = g["Volume"].transform(
+            lambda x: x.rolling(20, min_periods=20).mean()
+        )
         df["Volume_Ratio_20"] = vol / (vol_sma20 + EPS)
         df["Volume_Lag1"] = g["Volume"].shift(1) / (vol_sma20 + EPS)
 
@@ -253,24 +271,21 @@ class FeatureEngineering:
         df["Lower_Shadow"] = (lower_body - low) / close
 
         return df
-    
+
     # ------------------------------------------------------------------
     # Target Build
     # ------------------------------------------------------------------
     def _create_target(
-        self,
-        df: pd.DataFrame,
-        up_th: float,
-       down_th: float
-     ) -> pd.DataFrame:
+        self, df: pd.DataFrame, up_th: float, down_th: float
+    ) -> pd.DataFrame:
         """
 
-       Creates a 3-class target using the next day's adjusted return.
+        Creates a 3-class target using the next day's adjusted return.
 
-       0 = Neutral
-       1 = Up
-       2 = Down
-    """
+        0 = Neutral
+        1 = Up
+        2 = Down
+        """
 
         df = df.copy()
 
@@ -283,15 +298,15 @@ class FeatureEngineering:
         df["Forward_Return_1D"] = forward_return
 
         df["Target"] = np.select(
-          [
-            forward_return > up_th,
-            forward_return < down_th,
-          ],
-          [
-            1,
-            2,
-          ],
-          default=0,
+            [
+                forward_return > up_th,
+                forward_return < down_th,
+            ],
+            [
+                1,
+                2,
+            ],
+            default=0,
         )
 
         # Last row of every ticker has no future price
@@ -318,8 +333,8 @@ class FeatureEngineering:
         df = self._create_volatility_features(df)
         df = self._create_volume_features(df)
         df = self._create_candlestick_features(df)
-        df = self._create_target(df, up_th = UP_THRE, down_th = LOW_THRE) 
-  
+        df = self._create_target(df, up_th=UP_THRE, down_th=LOW_THRE)
+
         # Reduce memory usage
         float_cols = df.select_dtypes(include=["float64"]).columns
         df[float_cols] = df[float_cols].astype("float32")
@@ -350,8 +365,7 @@ class FeatureEngineering:
 
         return self.output_path
 
-    
-    
+
 if __name__ == "__main__":
     try:
         engineer = FeatureEngineering()

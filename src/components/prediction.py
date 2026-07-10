@@ -4,21 +4,15 @@ import joblib
 import pandas as pd
 
 from src.utils.config import load_config
-from src.utils.constants import (
-                   FEATURE_COLS,
-                   TARGET_COL,
-                   TARGET_NAMES,
-                )
-
+from src.utils.constants import FEATURE_COLS, TARGET_COL, TARGET_NAMES
 from src.utils.logger import get_logger
 
 logger = get_logger("prediction")
 
 
-
-
 class PredictionError(Exception):
     """Custom exception for prediction failures."""
+
     pass
 
 
@@ -95,9 +89,8 @@ class Prediction:
     # ---------------------------------------------------------
 
     def _slice_to_inference_range(self, df: pd.DataFrame) -> pd.DataFrame:
-        mask = (
-            (df["Date"] >= pd.Timestamp(self.inference_range["start"]))
-            & (df["Date"] <= pd.Timestamp(self.inference_range["end"]))
+        mask = (df["Date"] >= pd.Timestamp(self.inference_range["start"])) & (
+            df["Date"] <= pd.Timestamp(self.inference_range["end"])
         )
         sliced = df.loc[mask].sort_values(["Ticker", "Date"]).reset_index(drop=True)
 
@@ -117,11 +110,18 @@ class Prediction:
     # Predict
     # ---------------------------------------------------------
 
-    def predict(self) -> pd.DataFrame:
+    def predict(self, df: pd.DataFrame | None = None) -> pd.DataFrame:
+        """
+        Predict from an already engineered feature dataframe.
+        Used by FastAPI/Streamlit.
+        """
+
         pipeline = self.load_model()
 
-        df = self.load_features()
-        df = self._slice_to_inference_range(df)
+        # Training pipeline
+        if df is None:
+            df = self.load_features()
+            df = self._slice_to_inference_range(df)
 
         X = df[FEATURE_COLS]
 
@@ -132,22 +132,16 @@ class Prediction:
         result = df[["Date", "Ticker"]].copy()
 
         result["Prediction"] = predictions
-        
-        result["Prediction_Label"] = [
-                        TARGET_NAMES[int(p)]
-                        for p in predictions
-                    ]
-        
+
+        result["Prediction_Label"] = [TARGET_NAMES[int(p)] for p in predictions]
+
         result["Prob_Neutral"] = probabilities[:, 0]
         result["Prob_Up"] = probabilities[:, 1]
         result["Prob_Down"] = probabilities[:, 2]
 
         if TARGET_COL in df.columns:
             result[TARGET_COL] = df[TARGET_COL].values
-            
-            result["Correct"] = (
-                result["Prediction"] == result[TARGET_COL]
-            )
+        result["Date"] = result["Date"].dt.strftime("%Y-%m-%d")
 
         return result
 
