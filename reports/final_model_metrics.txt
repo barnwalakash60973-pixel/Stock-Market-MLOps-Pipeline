@@ -1,0 +1,23 @@
+FINAL MODEL EVALUATION
+========================================
+
+Accuracy : 0.5685
+Precision: 0.3891
+Recall   : 0.3820
+F1 Score : 0.3754
+
+Confusion Matrix
+----------------------------------------
+[[2519, 229, 495], [632, 100, 194], [522, 77, 212]]
+
+Classification Report
+----------------------------------------
+              precision    recall  f1-score   support
+
+     Neutral       0.69      0.78      0.73      3243
+          Up       0.25      0.11      0.15       926
+        Down       0.24      0.26      0.25       811
+
+    accuracy                           0.57      4980
+   macro avg       0.39      0.38      0.38      4980
+weighted avg       0.53      0.57      0.54      4980

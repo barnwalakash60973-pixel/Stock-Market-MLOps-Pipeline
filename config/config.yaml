@@ -1,0 +1,82 @@
+data:
+  stocks:
+    - RELIANCE.NS
+    - TCS.NS
+    - INFY.NS
+    - HDFCBANK.NS
+    - ICICIBANK.NS
+    - SBIN.NS
+    - LT.NS
+    - BHARTIARTL.NS
+    - ITC.NS
+    - KOTAKBANK.NS
+    - AXISBANK.NS
+    - BAJFINANCE.NS
+    - ASIANPAINT.NS
+    - MARUTI.NS
+    - SUNPHARMA.NS
+    - TITAN.NS
+    - ULTRACEMCO.NS
+    - WIPRO.NS
+    - HCLTECH.NS
+    - ADANIPORTS.NS
+
+  start_date: "2015-06-01"
+  end_date: "2026-06-30"
+
+train:
+  random_state: 42
+
+  impute_strategy: median
+
+  early_stopping_rounds: 50
+
+  walk_forward_folds:
+    - train_start: "2015-01-01"
+      train_end: "2020-12-31"
+      test_start: "2021-01-01"
+      test_end: "2021-12-31"
+
+    - train_start: "2015-01-01"
+      train_end: "2021-12-31"
+      test_start: "2022-01-01"
+      test_end: "2022-12-31"
+
+    - train_start: "2015-01-01"
+      train_end: "2022-12-31"
+      test_start: "2023-01-01"
+      test_end: "2023-12-31"
+
+    - train_start: "2015-01-01"
+      train_end: "2023-12-31"
+      test_start: "2024-01-01"
+      test_end: "2024-12-31"
+
+
+  final_train_range:
+    train_start: "2015-01-01"
+    train_end: "2024-12-31"
+
+  evaluation_range:
+    start: "2025-01-01"
+    end: "2025-12-31"
+
+  inference_range:
+    start: "2026-01-01"
+    end: "2026-07-04"
+
+  model_params:
+    iterations: 1000
+    learning_rate: 0.03
+    depth: 3
+    l2_leaf_reg: 6
+    loss_function: MultiClass
+    auto_class_weights: Balanced
+    
+output:
+  raw_data_path: "data/raw/stock_data.parquet"
+  feature_data_path: "data/features/feature_data.parquet"
+  model_path: "models/catboost_pipeline.joblib"
+  fold_metrics_path: "reports/walk_forward_metrics.txt"
+  final_metrics_path: "reports/final_model_metrics.txt"
+  inference_predictions_path: "data/predictions/inference_predictions.parquet"

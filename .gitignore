@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+venu/
+
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+
+# MLflow
+mlruns/
+
+# Models
+models/
+
+# CatBoost
+catboost_info/
+
+# Reports (optional)
+# reports/
+
+# Data
+data/raw/
+data/features/
+data/predictions/
+
+# DVC
+.dvc/cache/
+artifacts/
+
+# Environment variables
+.env
