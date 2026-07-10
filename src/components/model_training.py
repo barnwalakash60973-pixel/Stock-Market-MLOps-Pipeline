@@ -12,14 +12,18 @@ except ImportError as e:
 
 
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import (accuracy_score, classification_report,
-                             confusion_matrix, f1_score, precision_score,
-                             recall_score)
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from sklearn.pipeline import Pipeline
 
 from src.utils.config import load_config
-from src.utils.constants import (FEATURE_COLS, TARGET_COL, TARGET_LABELS,
-                                 TARGET_NAMES)
+from src.utils.constants import FEATURE_COLS, TARGET_COL, TARGET_LABELS, TARGET_NAMES
 from src.utils.logger import get_logger
 
 logger = get_logger("train")

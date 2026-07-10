@@ -2,8 +2,10 @@ import pandas as pd
 from fastapi import UploadFile
 
 from app.validators import validate_dataframe
-from src.components.feature_engineering import (FeatureEngineering,
-                                                FeatureEngineeringError)
+from src.components.feature_engineering import (
+    FeatureEngineering,
+    FeatureEngineeringError,
+)
 from src.components.prediction import Prediction, PredictionError
 from src.utils.logger import get_logger
 
