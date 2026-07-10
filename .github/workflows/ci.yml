@@ -36,7 +36,7 @@ jobs:
 
       - name: Check Import Sorting
         run: |
-          isort --check-only src app
+          python -m isort --profile black --check-only src app
 
 
       - name: Lint Code
