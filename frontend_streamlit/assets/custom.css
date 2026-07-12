@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Stock Market Prediction Dashboard — Fintech Terminal Theme
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+    --bg: #0B1220;
+    --surface: #121B2E;
+    --surface-alt: #17223A;
+    --border: #223049;
+    --text: #E5EAF2;
+    --text-muted: #8B98B0;
+    --accent: #22D3B8;
+    --up: #22D3B8;
+    --down: #F0537A;
+    --neutral: #F5B942;
+}
+
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
+/* App background */
+.stApp {
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+section[data-testid="stSidebar"] {
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+}
+
+/* Brand block in sidebar */
+.brand-block {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.brand-block:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.brand-icon {
+    font-size: 1.8rem;
+    color: var(--accent);
+}
+
+.brand-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.brand-version {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+/* Status badge */
+.status-badge {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    background-color: var(--surface-alt);
+    border: 1px solid var(--border);
+}
+.status-ok { color: var(--up); }
+.status-bad { color: var(--down); }
+
+/* KPI cards */
+.kpi-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.5rem;
+
+    /* Animation */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+.kpi-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.35rem;
+}
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.65rem;
+    font-weight: 600;
+    color: var(--text);
+}
+.kpi-delta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+/* ==========================
+   Section Headings
+   ========================== */
+h1, h2, h3 {
+    color: var(--text);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.6rem;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.45rem;
+}
+
+h3 {
+    font-size: 1.15rem;
+}
+
+
+/* ==========================
+   Metrics & Tables
+   ========================== */
+[data-testid="stMetricValue"] {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.7rem;
+    font-weight: 600;
+}
+
+.stDataFrame,
+.stDataFrame td,
+.stDataFrame th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86rem;
+}
+
+.stDataFrame {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+
+/* ==========================
+   Buttons
+   ========================== */
+.stButton > button,
+.stDownloadButton > button {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.stButton > button:hover,
+.stDownloadButton > button:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+}
+
+.stButton > button[kind="primary"] {
+    background-color: var(--accent);
+    color: #06231E;
+    border: none;
+}
+
+.stButton > button[kind="primary"]:hover {
+    filter: brightness(1.05);
+}
+
+
+/* ==========================
+   Footer
+   ========================== */
+.app-footer {
+    margin-top: 3rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+    opacity: 0.8;
+}

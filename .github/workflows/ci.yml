@@ -28,19 +28,19 @@ jobs:
 
       - name: Check Python Syntax
         run: |
-          python -m compileall src app
+          python -m compileall src app frontend_streamlit
 
       - name: Check Code Formatting
         run: |
-          black --check src app
+          black --check src app frontend_streamlit
 
       - name: Check Import Sorting
         run: |
-          python -m isort --profile black --check-only src app
+          python -m isort --profile black --check-only src app frontend_streamlit
 
 
       - name: Lint Code
         run: |
-          flake8 src app
+          flake8 src app frontend_streamlit
 
       
