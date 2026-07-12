@@ -20,7 +20,7 @@ logs/
 mlruns/
 
 # Models
-models/
+#models/
 
 # CatBoost
 catboost_info/
@@ -29,9 +29,9 @@ catboost_info/
 # reports/
 
 # Data
-data/raw/
-data/features/
-data/predictions/
+#data/raw/
+#data/features/
+#data/predictions/
 
 # DVC
 .dvc/cache/
@@ -39,3 +39,4 @@ artifacts/
 
 # Environment variables
 .env
+/data
