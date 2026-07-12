@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+# Prevent Python from writing .pyc files
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Ensure logs are shown immediately
+ENV PYTHONUNBUFFERED=1
+
+# Default backend URL (can be overridden by Docker Compose)
+ENV API_URL=http://localhost:8000
+
+WORKDIR /app
+
+# Install frontend dependencies
+COPY requirements/frontend.txt .
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r frontend.txt
+
+# Copy project
+COPY . .
+
+EXPOSE 8501
+
+CMD ["streamlit","run","frontend_streamlit/streamlit_app.py","--server.address=0.0.0.0","--server.port=8501"]

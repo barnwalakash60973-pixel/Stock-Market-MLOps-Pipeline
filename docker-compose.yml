@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: stock-market-backend
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: stock-market-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      STOCK_API_BASE_URL: http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped

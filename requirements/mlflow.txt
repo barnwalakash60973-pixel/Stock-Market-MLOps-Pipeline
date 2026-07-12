@@ -1,0 +1,7 @@
+# Data Collection
+yfinance==1.5.1
+beautifulsoup4==4.15.0
+
+# MLOps
+mlflow==3.14.0
+dvc==3.67.1

@@ -46,6 +46,7 @@ from utils import (
 
 ASSETS_DIR = Path(__file__).parent / "assets"
 
+
 _PLOTLY_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
@@ -144,7 +145,7 @@ def render_dashboard_tab(api_client: APIClient) -> None:
     label_counts = compute_label_counts(combined_df)
     latest = get_latest_result()
     health = api_client.check_health()
-
+   
     render_kpi_row(
         [
             {
@@ -212,6 +213,7 @@ def render_dashboard_tab(api_client: APIClient) -> None:
 
 
 def render_prediction_tab(api_client: APIClient) -> None:
+    
     uploaded_file = st.file_uploader(
         "Upload OHLCV CSV file",
         type=["csv"],
@@ -237,6 +239,7 @@ def render_prediction_tab(api_client: APIClient) -> None:
             try:
                 preview_df = read_csv_preview(file_bytes)
                 result = validate_dataframe_shape(preview_df)
+
                 for w in result.warnings:
                     st.warning(w)
                 for err in result.errors:
@@ -252,7 +255,7 @@ def render_prediction_tab(api_client: APIClient) -> None:
     run_clicked = st.button(
         "🚀 Run Prediction",
         type="primary",
-        disabled=not is_valid,
+        disabled=False,
         use_container_width=True,
     )
 
@@ -519,10 +522,10 @@ def main() -> None:
     st.caption("A CatBoost-powered stock movement classifier, served through FastAPI.")
 
     tabs = st.tabs(["📊 Dashboard", "🔮 Prediction", "🔌 API Status", "ℹ️ About"])
-    with tabs[0]:
-        render_dashboard_tab(api_client)
     with tabs[1]:
         render_prediction_tab(api_client)
+    with tabs[0]:
+        render_dashboard_tab(api_client)
     with tabs[2]:
         render_api_status_tab(api_client, api_base_url)
     with tabs[3]:

@@ -85,7 +85,9 @@ def init_session_state() -> None:
 
 def record_prediction_run(df: pd.DataFrame, source_filename: str) -> None:
     """Append a completed run so the Dashboard tab can show cumulative KPIs."""
+    
     init_session_state()
+
     entry = PredictionRun(
         timestamp=time.time(),
         filename=source_filename,
@@ -100,15 +102,15 @@ def get_latest_result() -> dict[str, Any] | None:
     init_session_state()
     return st.session_state[LAST_RESULT_KEY]
 
-
 def get_combined_predictions() -> pd.DataFrame:
     """Concatenate every run this session for cumulative Dashboard KPIs."""
     init_session_state()
     history = st.session_state[HISTORY_KEY]
+
     if not history:
         return pd.DataFrame()
-    return pd.concat([e["dataframe"] for e in history], ignore_index=True)
 
+    return pd.concat([e.dataframe for e in history], ignore_index=True)
 
 def compute_label_counts(df: pd.DataFrame) -> dict[str, int]:
     if df.empty or "Prediction_Label" not in df.columns:
