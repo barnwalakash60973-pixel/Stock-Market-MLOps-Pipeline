@@ -40,3 +40,4 @@ artifacts/
 # Environment variables
 .env
 /data
+/models
