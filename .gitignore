@@ -8,7 +8,6 @@ venv/
 .venv/
 venu/
 
-
 # IDE
 .vscode/
 .idea/
@@ -18,26 +17,26 @@ logs/
 
 # MLflow
 mlruns/
-
-# Models
-#models/
+mlflow.db
 
 # CatBoost
 catboost_info/
 
-# Reports (optional)
-# reports/
-
-# Data
-#data/raw/
-#data/features/
-#data/predictions/
+# Reports
+reports/
 
 # DVC
 .dvc/cache/
-artifacts/
 
 # Environment variables
 .env
+
+# Data & Models (managed by DVC)
 /data
 /models
+
+# Build artifacts
+artifacts/
+
+#mlflow ui
+start_mlflow.bat

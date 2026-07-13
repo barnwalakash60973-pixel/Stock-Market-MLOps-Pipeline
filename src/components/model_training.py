@@ -21,10 +21,10 @@ from sklearn.metrics import (
     recall_score,
 )
 from sklearn.pipeline import Pipeline
-
-from src.utils.config import load_config
-from src.utils.constants import FEATURE_COLS, TARGET_COL, TARGET_LABELS, TARGET_NAMES
 from src.utils.logger import get_logger
+from src.utils.config import load_config
+from src.utils.mlflow_logger import MLflowLogger
+from src.utils.constants import FEATURE_COLS, TARGET_COL, TARGET_LABELS, TARGET_NAMES
 
 logger = get_logger("train")
 
@@ -322,7 +322,8 @@ class ModelTrainer:
     # Final production model + forward-only inference
     # ------------------------------------------------------------------
 
-    def train_final_model(self, labeled_df: pd.DataFrame) -> Pipeline:
+    def train_final_model(self, labeled_df: pd.DataFrame) -> tuple[Pipeline, int]:
+
         train_df = self._slice_by_date(
             labeled_df,
             self.final_train_range["train_start"],
@@ -339,11 +340,40 @@ class ModelTrainer:
             f"{self.final_train_range['train_end']} "
             f"({len(train_df)} rows)"
         )
+
+        # --- Stage 1: find validated iteration count via ES split ---
+        fit_df, es_df = self._inner_train_es_split(train_df)
+
+        X_fit, y_fit = fit_df[FEATURE_COLS], fit_df[TARGET_COL]
+        X_es, y_es = es_df[FEATURE_COLS], es_df[TARGET_COL]
+
+        es_imputer = SimpleImputer(strategy=self.impute_strategy)
+        X_fit_imputed = es_imputer.fit_transform(X_fit)
+        X_es_imputed = es_imputer.transform(X_es)
+
+        es_model = self.build_model()
+        es_model.fit(
+            X_fit_imputed,
+            y_fit,
+            eval_set=(X_es_imputed, y_es),
+            early_stopping_rounds=self.early_stopping_rounds,
+            verbose=False,
+        )
+        best_iteration = es_model.get_best_iteration()
+
+        logger.info(f"Final model: validated best_iteration={best_iteration}")
+
+        # --- Stage 2: retrain on 100% of the window at that iteration count ---
         X_train, y_train = train_df[FEATURE_COLS], train_df[TARGET_COL]
         imputer = SimpleImputer(strategy=self.impute_strategy)
         X_train_imputed = imputer.fit_transform(X_train)
 
-        model = self.build_model()
+        final_params = {**self.model_params, "iterations": best_iteration + 1}
+        model = CatBoostClassifier(
+            random_state=self.random_state,
+            verbose=False,
+            **final_params,
+        )
         model.fit(X_train_imputed, y_train)
 
         pipeline = Pipeline(
@@ -353,7 +383,7 @@ class ModelTrainer:
             ]
         )
 
-        return pipeline
+        return pipeline, best_iteration + 1
 
     # ====================================================
     # Evaluation on Evaluation Data
@@ -491,20 +521,29 @@ class ModelTrainer:
     # ------------------------------------------------------------------
 
     def run(self) -> str:
+        # -----------------------------
+        # Load and validate data
+        # -----------------------------
         df = self.load_data()
         self._validate_columns(df)
 
-        # Computed once, shared by both walk-forward validation and
-        # final model training (previously duplicated in each method).
         labeled_df = self._drop_missing_target_rows(df)
 
-        # Step 1: 5-fold expanding-window walk-forward validation
+        # -----------------------------
+        # Walk-forward validation
+        # -----------------------------
         fold_results = self.run_walk_forward(labeled_df)
         self.save_fold_metrics(fold_results)
 
-        # Step 2: final production model trained on all history through 2024
-        final_pipeline = self.train_final_model(labeled_df)
+        # -----------------------------
+        # Train final production model
+        # -----------------------------
+        final_pipeline, final_iterations = self.train_final_model(labeled_df)
 
+
+        # -----------------------------
+        # Final evaluation
+        # -----------------------------
         final_metrics = self.evaluate_final_model(
             final_pipeline,
             labeled_df,
@@ -512,7 +551,47 @@ class ModelTrainer:
 
         self.save_final_metrics(final_metrics)
 
+        # -----------------------------
+        # Save trained pipeline
+        # -----------------------------
         model_path = self.save_pipeline(final_pipeline)
+
+        # -----------------------------
+        # Track final model with MLflow
+        # -----------------------------
+        tracker = MLflowLogger()
+
+        params_to_log = {
+            "impute_strategy": self.impute_strategy,
+            "early_stopping_rounds": self.early_stopping_rounds,
+            "es_frac": self.es_frac,
+            **self.model_params,
+        }
+
+        params_to_log.setdefault("random_state", self.random_state)
+        params_to_log["final_iterations"] = final_iterations
+
+        with tracker.start_run(run_name="final_production_model"):
+
+            tracker.log_params(params_to_log)
+
+            tracker.log_metrics(
+                {
+                    "accuracy": final_metrics["accuracy"],
+                    "precision": final_metrics["precision"],
+                    "recall": final_metrics["recall"],
+                    "f1_score": final_metrics["f1_score"],
+                }
+            )
+
+            tracker.log_artifact(self.fold_metrics_path)
+            tracker.log_artifact(self.final_metrics_path)
+
+            tracker.log_model(final_pipeline)
+
+            tracker.log_artifact(model_path)
+
+        logger.info("MLflow tracking completed successfully.")
 
         return model_path
 
