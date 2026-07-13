@@ -8,24 +8,17 @@
 
 ## 🛠 Tech Stack
 
-```{=html}
 <p align="left">
-```
-`<img src="https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python"/>`{=html}
-`<img src="https://img.shields.io/badge/CatBoost-ML-green?style=for-the-badge"/>`{=html}
-`<img src="https://img.shields.io/badge/Scikit--Learn-ML-orange?style=for-the-badge&logo=scikitlearn"/>`{=html}
-`<img src="https://img.shields.io/badge/FastAPI-API-009688?style=for-the-badge&logo=fastapi"/>`{=html}
-`<img src="https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit"/>`{=html}
-`<img src="https://img.shields.io/badge/MLflow-Tracking-0194E2?style=for-the-badge"/>`{=html}
-`<img src="https://img.shields.io/badge/DVC-Versioning-13ADC7?style=for-the-badge"/>`{=html}
-`<img src="https://img.shields.io/badge/Docker-Container-2496ED?style=for-the-badge&logo=docker"/>`{=html}
-`<img src="https://img.shields.io/badge/GitHub_Actions-CI-2088FF?style=for-the-badge&logo=githubactions"/>`{=html}
-`<img src="https://img.shields.io/badge/Render-Deployment-46E3B7?style=for-the-badge&logo=render"/>`{=html}
-`<img src="https://img.shields.io/badge/CD-Automatic-success?style=for-the-badge"/>`{=html}
-`<img src="https://img.shields.io/badge/Walk--Forward-Validation-blueviolet?style=for-the-badge"/>`{=html}
-```{=html}
+  <img src="https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python" />
+  <img src="https://img.shields.io/badge/CatBoost-ML-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/FastAPI-API-009688?style=for-the-badge&logo=fastapi" />
+  <img src="https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit" />
+  <img src="https://img.shields.io/badge/MLflow-Tracking-0194E2?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/DVC-Versioning-13ADC7?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Docker-Container-2496ED?style=for-the-badge&logo=docker" />
+  <img src="https://img.shields.io/badge/GitHub_Actions-CI-2088FF?style=for-the-badge&logo=githubactions" />
+  <img src="https://img.shields.io/badge/Render-Deployment-46E3B7?style=for-the-badge&logo=render" />
 </p>
-```
 
 ------------------------------------------------------------------------
 
