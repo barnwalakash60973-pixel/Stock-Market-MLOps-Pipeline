@@ -64,10 +64,10 @@ def load_css() -> None:
         st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 
 
-#@st.cache_resource(show_spinner=False)
-#def get_api_client(base_url: str) -> APIClient:
+@st.cache_resource(show_spinner=False)
+def get_api_client(base_url: str) -> APIClient:
     """One APIClient per base_url, reused across reruns for connection pooling."""
- #   return APIClient(base_url)
+    return APIClient(base_url)
 
 
 
@@ -514,9 +514,8 @@ def main() -> None:
     load_css()
     init_session_state()
 
-    api_client = APIClient(
-    st.session_state.get("api_base_url", settings.api_base_url)
-)
+    
+    api_client = get_api_client(settings.api_base_url)
     api_base_url = render_sidebar(api_client)
 
     st.title("📈 Stock Market Prediction Dashboard")
