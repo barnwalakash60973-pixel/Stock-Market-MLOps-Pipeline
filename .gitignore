@@ -40,3 +40,5 @@ artifacts/
 
 #mlflow ui
 start_mlflow.bat
+
+SWIGGY_1Y.csv
