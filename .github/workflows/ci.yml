@@ -20,11 +20,15 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
+          cache-dependency-path: |
+            requirements/backend.txt
+            requirements/frontend.txt
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements/backend.txt
+          pip install -r requirements/frontend.txt
 
       - name: Check Python Syntax
         run: |
@@ -38,9 +42,6 @@ jobs:
         run: |
           python -m isort --profile black --check-only src app frontend_streamlit
 
-
       - name: Lint Code
         run: |
           flake8 src app frontend_streamlit
-
-      
