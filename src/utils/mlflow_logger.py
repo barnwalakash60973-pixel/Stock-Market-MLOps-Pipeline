@@ -38,7 +38,7 @@ class MLflowLogger:
             skops_trusted_types=[
                 "catboost.core.CatBoostClassifier",
                 "numpy.dtype",
-           ],
+            ],
         )
 
     def end_run(self):

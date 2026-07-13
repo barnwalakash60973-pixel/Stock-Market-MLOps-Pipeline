@@ -21,10 +21,11 @@ from sklearn.metrics import (
     recall_score,
 )
 from sklearn.pipeline import Pipeline
-from src.utils.logger import get_logger
+
 from src.utils.config import load_config
-from src.utils.mlflow_logger import MLflowLogger
 from src.utils.constants import FEATURE_COLS, TARGET_COL, TARGET_LABELS, TARGET_NAMES
+from src.utils.logger import get_logger
+from src.utils.mlflow_logger import MLflowLogger
 
 logger = get_logger("train")
 
@@ -539,7 +540,6 @@ class ModelTrainer:
         # Train final production model
         # -----------------------------
         final_pipeline, final_iterations = self.train_final_model(labeled_df)
-
 
         # -----------------------------
         # Final evaluation

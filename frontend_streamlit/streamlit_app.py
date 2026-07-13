@@ -145,7 +145,7 @@ def render_dashboard_tab(api_client: APIClient) -> None:
     label_counts = compute_label_counts(combined_df)
     latest = get_latest_result()
     health = api_client.check_health()
-   
+
     render_kpi_row(
         [
             {
@@ -213,7 +213,7 @@ def render_dashboard_tab(api_client: APIClient) -> None:
 
 
 def render_prediction_tab(api_client: APIClient) -> None:
-    
+
     uploaded_file = st.file_uploader(
         "Upload OHLCV CSV file",
         type=["csv"],

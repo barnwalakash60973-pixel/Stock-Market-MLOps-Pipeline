@@ -29,6 +29,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/backend.txt
           pip install -r requirements/frontend.txt
+        
+      - name: Install Development Tools
+        run: |
+          pip install black isort flake8 mypy pytest
 
       - name: Check Python Syntax
         run: |
