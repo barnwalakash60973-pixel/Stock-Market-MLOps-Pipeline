@@ -13,7 +13,7 @@ class Settings:
 
     request_timeout: int = int(os.getenv("STOCK_API_TIMEOUT", "30"))
     predict_timeout: int = int(os.getenv("STOCK_API_PREDICT_TIMEOUT", "120"))
-    health_timeout: int = int(os.getenv("STOCK_API_HEALTH_TIMEOUT", "5"))
+    health_timeout: int = int(os.getenv("STOCK_API_HEALTH_TIMEOUT", "45"))
 
     app_title: str = "Stock Market Prediction Dashboard"
     app_icon: str = "📈"
