@@ -66,42 +66,26 @@ class APIClient:
         self._session = requests.Session()
 
     def check_health(self) -> HealthStatus:
+        """Call GET /health. Never raises — errors are captured in the result."""
         url = build_url(self.base_url, HEALTH)
         start = time.perf_counter()
-
-        print("=" * 60)
-        print("Health URL:", url)
-
         try:
             resp = self._session.get(url, timeout=settings.health_timeout)
-
             elapsed_ms = (time.perf_counter() - start) * 1000
-
-            print("Status Code:", resp.status_code)
-            print("Response:", resp.text)
-
             if resp.status_code == 200:
                 return HealthStatus(
-                True,
-                resp.json().get("status", "healthy"),
-                elapsed_ms,
+                   True, resp.json().get("status", "healthy"), elapsed_ms
+                )
+            return HealthStatus(
+                False, "unhealthy", elapsed_ms, error=f"HTTP {resp.status_code}"
             )
-
-            return HealthStatus(
-            False,
-            "unhealthy",
-            elapsed_ms,
-            error=f"HTTP {resp.status_code}: {resp.text}",
-        )
-
-        except Exception as e:
-            print("Exception:", repr(e))
-            return HealthStatus(
-            False,
-            "error",
-            0.0,
-            error=repr(e),
-        )
+        except requests.exceptions.ConnectionError as e:
+            return HealthStatus(False, "unreachable", 0.0, error=str(e))
+        except requests.exceptions.Timeout as e:
+            return HealthStatus(False, "timeout", 0.0, error=str(e))
+        except requests.exceptions.RequestException as e:
+            logger.exception("Health check failed")
+            return HealthStatus(False, "error", 0.0, error=str(e))
 
     def predict_csv(self, filename: str, file_bytes: bytes) -> PredictionResponse:
         """POST a CSV to /predict/upload and return parsed predictions.
