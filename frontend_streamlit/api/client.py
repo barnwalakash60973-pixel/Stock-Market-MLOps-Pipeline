@@ -74,7 +74,7 @@ class APIClient:
             elapsed_ms = (time.perf_counter() - start) * 1000
             if resp.status_code == 200:
                 return HealthStatus(
-                   True, resp.json().get("status", "healthy"), elapsed_ms
+                    True, resp.json().get("status", "healthy"), elapsed_ms
                 )
             return HealthStatus(
                 False, "unhealthy", elapsed_ms, error=f"HTTP {resp.status_code}"
