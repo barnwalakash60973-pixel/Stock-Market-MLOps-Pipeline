@@ -24,7 +24,7 @@
 |---------|-----|
 | 🎯 Streamlit Dashboard | https://stock-market-mlops-pipeline.onrender.com|
 | ⚡ FastAPI API | https://stock-market-mlops-pipeline-1.onrender.com/ |
-| 📘 Swagger UI |https://stock-market-mlops-pipeline.onrender.com /docs |
+| 📘 Swagger UI |https://stock-market-mlops-pipeline.onrender.com/docs |
 
 
 ---
