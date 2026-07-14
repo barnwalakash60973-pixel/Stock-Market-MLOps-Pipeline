@@ -1,12 +1,17 @@
 name: CD - Render Deployment
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
 
 jobs:
   deploy:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'render-deploy'
+
     runs-on: ubuntu-latest
 
     steps:
