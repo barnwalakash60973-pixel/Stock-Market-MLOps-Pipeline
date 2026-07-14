@@ -62,7 +62,7 @@ class APIClient:
     """Wraps every REST call to the FastAPI backend."""
 
     def __init__(self, base_url: str | None = None) -> None:
-        self.base_url = (base_url or settings.api_base_url).rstrip("/")
+        self.base_url = (base_url or settings.api_base_url).strip().rstrip("/")
         self._session = requests.Session()
 
     def check_health(self) -> HealthStatus:

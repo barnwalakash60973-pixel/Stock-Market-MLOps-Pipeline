@@ -9,7 +9,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Settings:
-    api_base_url: str = os.getenv("STOCK_API_BASE_URL", "http://localhost:8000")
+    api_base_url: str = os.getenv("STOCK_API_BASE_URL","http://localhost:8000"
+    ).strip().rstrip("/")
 
     request_timeout: int = int(os.getenv("STOCK_API_TIMEOUT", "30"))
     predict_timeout: int = int(os.getenv("STOCK_API_PREDICT_TIMEOUT", "120"))
