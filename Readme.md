@@ -22,7 +22,7 @@
 
 | Service | URL |
 |---------|-----|
-| 🎯 Streamlit Dashboard |https://stock-market-mlops-pipeline.onrender.com/ |
+| 🎯 Streamlit Dashboard |https://stock-market-mlops-pipeline-1.onrender.com/ |
 | ⚡ FastAPI API |https://stock-market-mlops-pipeline.onrender.com |
 | 📘 Swagger UI |https://stock-market-mlops-pipeline.onrender.com/docs |
 
